@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      window.addEventListener("DOMContentLoaded", (event) => {
+        const dataElement = document.querySelector("#data");
+        const sizeInput = document.querySelector("#size-input");
+        const streamState = { open: false };
+        const stopStream = () => {
+          switchButton.innerHTML = "start";
+          streamState.open = false;
+        };
+        const startStream = async () => {
+          streamState.open = true;
+          switchButton.innerHTML = "stop";
+          const streamSize = sizeInput.value;
+          const res = await fetch(`/stream/${streamSize}`);
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder("utf-8");
+          let done = false;
+          let value = "";
+          window.reader = reader;
+
+          while (streamState.open && !done) {
+            ({ value, done } = await reader.read());
+            const decoded = decoder.decode(value);
+            const chunks = decoded.split("|").filter((s) => s.length);
+            chunks.forEach((chunk) => (dataElement.innerHTML += `${chunk}\n`));
+          }
+          reader.cancel();
+          stopStream();
+        };
+
+        const switchButton = document.querySelector("#switch");
+        switchButton.addEventListener("click", () => {
+          if (streamState.open) {
+            stopStream();
+          } else {
+            startStream();
+          }
+        });
+
+        const clearButton = document.querySelector("#clear");
+        clearButton.addEventListener("click", () => {
+          dataElement.innerHTML = "";
+        });
+      });
+    </script>
+    <title>Document</title>
+  </head>
+  <body>
+    <input id="size-input" type="number" placeholder="size" />
+    <button id="switch">start</button>
+    <button id="clear">clear</button>
+    <div id="data"></div>
+  </body>
+</html>
