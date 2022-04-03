@@ -1,5 +1,7 @@
 # Node JS Streaming Demo
 
+Live preview: https://node-stream-demo.herokuapp.com/
+
 This is a demo app to showcase streaming through http with Node JS.
 
 Run it:
