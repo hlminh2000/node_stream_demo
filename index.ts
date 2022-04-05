@@ -10,10 +10,14 @@ const app = express();
 const queue = new Queue(1);
 const createNumStream = async function* ({
   shouldContinue,
+  streamId
 }: {
   shouldContinue: () => boolean;
+  streamId: string;
 }) {
+  let diskIoTime = 0;
   const getNextNum = async () => {
+    const startTime = Date.now();
     const { num } = JSON.parse(await fs.readFile("./state.json", "utf-8")) as {
       num: number;
     };
@@ -22,6 +26,7 @@ const createNumStream = async function* ({
       JSON.stringify({ num: num + 1 }),
       "utf-8"
     );
+    diskIoTime += Date.now() - startTime;
     return num;
   };
 
@@ -29,6 +34,7 @@ const createNumStream = async function* ({
     const nextNum = await queue.add<number>(getNextNum);
     yield nextNum;
   }
+  console.log(`${streamId} diskIoTime: `, diskIoTime)
 };
 
 const streamHandler = async (req, res) => {
@@ -43,6 +49,7 @@ const streamHandler = async (req, res) => {
   res.addListener("close", onConnectionClose);
 
   const stream = createNumStream({
+    streamId: requestId,
     shouldContinue: () =>
       streamState.connected && streamState.sentAmount < size,
   });

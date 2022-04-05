@@ -4,11 +4,20 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      body {
+        background: black;
+        color: lightgrey;
+      }
+    </style>
     <script>
       window.addEventListener("DOMContentLoaded", (event) => {
         const dataElement = document.querySelector("#data");
         const sizeInput = document.querySelector("#size-input");
         const streamState = { open: false };
+        const renderStreamCheckbox = document.querySelector(
+          "#render-stream-check"
+        );
         const stopStream = () => {
           switchButton.innerHTML = "start";
           streamState.open = false;
@@ -20,15 +29,28 @@
           const res = await fetch(`/stream/${streamSize}`);
           const reader = res.body.getReader();
           const decoder = new TextDecoder("utf-8");
+          const DELIMITER = "|";
           let done = false;
           let value = "";
-          window.reader = reader;
+          let buffer = "";
+          let received = 0;
 
           while (streamState.open && !done) {
             ({ value, done } = await reader.read());
             const decoded = decoder.decode(value);
-            const chunks = decoded.split("|").filter((s) => s.length);
-            chunks.forEach((chunk) => (dataElement.innerHTML += `${chunk}\n`));
+            buffer += decoded;
+            const lastChar = buffer[buffer.length - 1];
+            if (lastChar === DELIMITER) {
+              const chunks = buffer.split(DELIMITER).filter((s) => s.length);
+              if (renderStreamCheckbox.checked) {
+                chunks.forEach(
+                  (chunk) => (dataElement.innerHTML += `${chunk}\n`)
+                );
+              }
+              received += chunks.length;
+              console.log("received: ", received, "payload: ", chunks);
+              buffer = "";
+            }
           }
           reader.cancel();
           stopStream();
@@ -55,6 +77,14 @@
     <input id="size-input" type="number" placeholder="size" />
     <button id="switch">start</button>
     <button id="clear">clear</button>
+    <div>
+      <input
+        type="checkbox"
+        id="render-stream-check"
+        name="render-stream-check"
+      />
+      <label for="render-stream-check"> render stream</label><br />
+    </div>
     <div id="data"></div>
   </body>
 </html>
