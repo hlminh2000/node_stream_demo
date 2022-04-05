@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import Queue from "promise-queue";
 import fs from "fs/promises";
 import { v4 as uuidv4 } from "uuid";
@@ -37,7 +37,7 @@ const createNumStream = async function* ({
   console.log(`${streamId} diskIoTime: `, diskIoTime)
 };
 
-const streamHandler = async (req, res) => {
+const streamHandler = async (req: Request, res: Response) => {
   const requestId = uuidv4();
   const size = parseInt(req.params.size) || Infinity;
   const streamState = { connected: true, sentAmount: 0 };
