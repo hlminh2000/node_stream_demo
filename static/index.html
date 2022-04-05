@@ -44,7 +44,7 @@
               const chunks = buffer.split(DELIMITER).filter((s) => s.length);
               if (renderStreamCheckbox.checked) {
                 chunks.forEach(
-                  (chunk) => (dataElement.innerHTML += `${chunk}\n`)
+                  (chunk) => (dataElement.innerHTML += `${chunk} `)
                 );
               }
               received += chunks.length;
