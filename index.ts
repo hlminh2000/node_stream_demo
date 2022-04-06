@@ -20,6 +20,7 @@ const acknowledgement = async ({ refreshKey, timeout = 1000 }: { refreshKey: str
     };
     acknowledgementSignal.add(onSignal);
     setTimeout(() => {
+      acknowledgementSignal.remove(onSignal);
       reject();
     }, timeout);
   });
