@@ -42,9 +42,7 @@ const createNumStream = async function* ({
   streamId: string;
 }) {
   let diskIoTime = 0;
-  let memNum = 0;
   const getNextNum = async () => {
-    return memNum++;
     const startTime = Date.now();
     const { num } = JSON.parse(await fs.readFile("./state.json", "utf-8")) as {
       num: number;
