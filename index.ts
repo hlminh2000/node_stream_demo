@@ -35,7 +35,7 @@ const acknowledgementHandler = (req: Request, res: Response) => {
 }
 
 const queue = new Queue(1);
-const createNumStream = async function* ({
+const createNumGenerator = async function* ({
   shouldContinue,
   streamId,
 }: {
@@ -75,13 +75,13 @@ const streamHandler = async (req: Request, res: Response) => {
   };
   res.addListener("close", onConnectionClose);
 
-  const stream = createNumStream({
+  const numGenerator = createNumGenerator({
     streamId: requestId,
     shouldContinue: () =>
       streamState.connected && streamState.sentAmount < size,
   });
 
-  streamIteration: for await (const num of stream) {
+  streamIteration: for await (const num of numGenerator) {
     console.log(`num sent to request ${requestId}:`, num);
     res.write(`${num}|`);
     streamState.sentAmount++;
