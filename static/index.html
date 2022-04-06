@@ -35,22 +35,27 @@
           let buffer = "";
           let received = 0;
 
-          while (streamState.open && !done) {
+          const ping = async (requestId) => fetch(`/ack/${requestId}`);
+
+          while (true) {
             ({ value, done } = await reader.read());
             const decoded = decoder.decode(value);
             buffer += decoded;
             const lastChar = buffer[buffer.length - 1];
             if (lastChar === DELIMITER) {
               const chunks = buffer.split(DELIMITER).filter((s) => s.length);
+              const lastChunk = chunks[chunks.length - 1];
               if (renderStreamCheckbox.checked) {
-                chunks.forEach(
+                chunks.filter(chunk => !chunk.includes(":")).forEach(
                   (chunk) => (dataElement.innerHTML += `${chunk} `)
                 );
               }
               received += chunks.length;
               console.log("received: ", received, "payload: ", chunks);
               buffer = "";
+              if (lastChunk.includes(":")) ping(lastChunk.split(":")[1]);
             }
+            if (!streamState.open || done) break
           }
           reader.cancel();
           stopStream();
